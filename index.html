@@ -1,95 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Alandar Pokédex</title>
-<style>
-  :root{
-    --bg:#07121f;
-    --panel:#101c2e;
-    --panel2:#13243a;
-    --text:#eef6ff;
-    --muted:#9fb1c5;
-    --accent:#7fd7ff;
-    --light:#fff3a3;
-    --void:#8b6cff;
-    --border:rgba(255,255,255,.11);
-  }
-  *{box-sizing:border-box}
-  body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(180deg,#07121f,#0b1727 45%,#07121f);color:var(--text)}
-  header{padding:34px 20px 24px;text-align:center;border-bottom:1px solid var(--border);background:radial-gradient(circle at top,#1b3c5f 0,#07121f 60%)}
-  h1{margin:0;font-size:42px;letter-spacing:.5px}
-  .subtitle{margin:10px auto 0;max-width:780px;color:var(--muted);line-height:1.5}
-  nav{position:sticky;top:0;z-index:5;background:rgba(7,18,31,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:12px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-  button,.pill{border:1px solid var(--border);background:var(--panel);color:var(--text);border-radius:999px;padding:10px 14px;cursor:pointer;font-weight:700}
-  button:hover,.active{background:#204568;border-color:#79cfff}
-  main{max-width:1200px;margin:0 auto;padding:22px 16px 60px}
-  .controls{display:grid;grid-template-columns:1fr 180px 180px;gap:10px;margin-bottom:18px}
-  input,select{width:100%;padding:13px 14px;border-radius:12px;border:1px solid var(--border);background:#0e1b2c;color:var(--text);font-size:15px}
-  .section-title{display:flex;align-items:end;justify-content:space-between;gap:12px;margin:26px 0 12px;border-bottom:1px solid var(--border);padding-bottom:10px}
-  .section-title h2{margin:0;font-size:26px}.count{color:var(--muted);font-size:14px}
-  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
-  .card{background:linear-gradient(180deg,var(--panel),var(--panel2));border:1px solid var(--border);border-radius:18px;padding:14px;text-align:center;min-height:210px;box-shadow:0 8px 20px rgba(0,0,0,.18)}
-  .dexno{color:var(--muted);font-weight:700;font-size:13px;text-align:left}.sprite{height:96px;display:flex;align-items:center;justify-content:center}.sprite img{image-rendering:auto;max-height:96px;max-width:96px}.name{font-size:17px;font-weight:800;margin:6px 0 10px;text-transform:capitalize}
-  .types{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}.type{font-size:12px;font-weight:800;border-radius:999px;padding:5px 8px;color:white;text-transform:capitalize;background:#607d8b}
-  .normal{background:#929da3}.fire{background:#ff9d55}.water{background:#5090d6}.electric{background:#f4d23c;color:#111}.grass{background:#63bc5a}.ice{background:#73cec0;color:#111}.fighting{background:#ce416b}.poison{background:#aa6bc8}.ground{background:#d97845}.flying{background:#8fa9de}.psychic{background:#fa7179}.bug{background:#91c12f;color:#111}.rock{background:#c5b78c;color:#111}.ghost{background:#5269ad}.dragon{background:#0b6dc3}.dark{background:#5a5465}.steel{background:#5a8ea2}.fairy{background:#ec8fe6;color:#111}.light{background:#fff3a3;color:#111}.void{background:#8b6cff}.placeholder{border-style:dashed;opacity:.9}
-  .status{padding:24px;text-align:center;color:var(--muted)}
-  .note{background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:16px;padding:14px;line-height:1.55;color:var(--muted);margin:18px 0}.note b{color:var(--text)}
-  .hidden{display:none!important}
-  footer{text-align:center;color:var(--muted);padding:30px;border-top:1px solid var(--border)}
-  @media(max-width:720px){h1{font-size:32px}.controls{grid-template-columns:1fr}.grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Alandar Pokédex</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
-<header>
-  <h1>Alandar Pokédex</h1>
-  <p class="subtitle">National Dex plus a separate Alandar Dex section. This file is built for Google Sites embedding.</p>
-</header>
-<nav id="tabs"></nav>
-<main>
-  <div class="controls">
-    <input id="search" placeholder="Search by name or dex number..." />
-    <select id="typeFilter"><option value="all">All types</option></select>
-    <select id="modeFilter"><option value="all">All dex sections</option><option value="national">National Dex</option><option value="alandar">Alandar Dex</option></select>
-  </div>
-  <div class="note"><b>Alandar rules:</b> Ascended Pokémon keep their original typing and gain Light as a third type. Void is reserved for Chimera X and approved 8+ Pokémon fusions.</div>
-  <div id="content"><div class="status">Loading Pokédex...</div></div>
-</main>
-<footer>Data loads from PokéAPI. Alandar Pokémon can be added inside the ALANDAR_DEX array in this HTML file.</footer>
-<script>
-const MAX_NATIONAL_DEX = 1025;
-const GENERATIONS = [
-  {id:'gen1', label:'Gen I', range:[1,151]},
-  {id:'gen2', label:'Gen II', range:[152,251]},
-  {id:'gen3', label:'Gen III', range:[252,386]},
-  {id:'gen4', label:'Gen IV', range:[387,493]},
-  {id:'gen5', label:'Gen V', range:[494,649]},
-  {id:'gen6', label:'Gen VI', range:[650,721]},
-  {id:'gen7', label:'Gen VII', range:[722,809]},
-  {id:'gen8', label:'Gen VIII', range:[810,905]},
-  {id:'gen9', label:'Gen IX', range:[906,1025]},
-  {id:'alandar', label:'Alandar Dex', range:null}
-];
-const TYPE_LIST = ['normal','fire','water','electric','grass','ice','fighting','poison','ground','flying','psychic','bug','rock','ghost','dragon','dark','steel','fairy','light','void'];
-const ALANDAR_DEX = [
-  {id:'A-001', name:'Vegonerb', types:['grass'], note:'Grass starter line placeholder', sprite:''},
-  {id:'A-002', name:'Boxturt', types:['water'], note:'Alandar Pokémon placeholder', sprite:''},
-  {id:'A-003', name:'Chimera X', types:['rock','fire','dragon'], note:'Box Legendary. Shifts into Void through its ability.', sprite:''},
-  {id:'A-004', name:'Known', types:['light'], note:'First Light type Pokémon and second box Legendary.', sprite:''}
-];
-let allPokemon = [];
-let activeTab = 'all';
-function cap(s){return s.split('-').map(x=>x.charAt(0).toUpperCase()+x.slice(1)).join(' ')}
-function pad(n){return String(n).padStart(4,'0')}
-function officialSprite(id){return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`}
-function typeSpan(t){return `<span class="type ${t}">${cap(t)}</span>`}
-function card(p){return `<article class="card ${p.source==='alandar'?'placeholder':''}"><div class="dexno">${p.source==='national'?'#'+pad(p.id):p.id}</div><div class="sprite">${p.sprite?`<img loading="lazy" src="${p.sprite}" alt="${p.name}">`:'<span style="font-size:42px">?</span>'}</div><div class="name">${cap(p.name)}</div><div class="types">${p.types.map(typeSpan).join('')}</div>${p.note?`<div style="color:var(--muted);font-size:12px;margin-top:8px">${p.note}</div>`:''}</article>`}
-function section(title, list){return `<section><div class="section-title"><h2>${title}</h2><span class="count">${list.length} Pokémon</span></div><div class="grid">${list.map(card).join('')}</div></section>`}
-function renderTabs(){const nav=document.getElementById('tabs'); nav.innerHTML = `<button class="${activeTab==='all'?'active':''}" onclick="activeTab='all';render()">All</button>` + GENERATIONS.map(g=>`<button class="${activeTab===g.id?'active':''}" onclick="activeTab='${g.id}';render()">${g.label}</button>`).join('')}
-function render(){renderTabs(); const q=document.getElementById('search').value.trim().toLowerCase(); const tf=document.getElementById('typeFilter').value; const mf=document.getElementById('modeFilter').value; let content=document.getElementById('content'); let data=allPokemon.filter(p=>{const matchesSearch=!q || p.name.toLowerCase().includes(q) || String(p.id).toLowerCase().includes(q) || (p.source==='national' && pad(p.id).includes(q)); const matchesType=tf==='all'||p.types.includes(tf); const matchesMode=mf==='all'||p.source===mf; return matchesSearch&&matchesType&&matchesMode}); if(activeTab!=='all'){ if(activeTab==='alandar') data=data.filter(p=>p.source==='alandar'); else { const g=GENERATIONS.find(x=>x.id===activeTab); data=data.filter(p=>p.source==='national' && p.id>=g.range[0] && p.id<=g.range[1]); }} if(!data.length){content.innerHTML='<div class="status">No Pokémon found.</div>';return} if(activeTab==='all' && !q && tf==='all' && mf==='all'){ let html=''; for(const g of GENERATIONS){ let list = g.id==='alandar'? data.filter(p=>p.source==='alandar') : data.filter(p=>p.source==='national' && p.id>=g.range[0] && p.id<=g.range[1]); if(list.length) html += section(g.label, list); } content.innerHTML=html; } else { content.innerHTML = section(activeTab==='all'?'Results':(GENERATIONS.find(g=>g.id===activeTab)?.label||'Results'), data); }}
-async function load(){try{document.getElementById('typeFilter').innerHTML += TYPE_LIST.map(t=>`<option value="${t}">${cap(t)}</option>`).join(''); const res=await fetch(`https://pokeapi.co/api/v2/pokemon?limit=${MAX_NATIONAL_DEX}`); const json=await res.json(); const details = await Promise.all(json.results.map(async (p,i)=>{ const id=i+1; try{ const d=await fetch(p.url).then(r=>r.json()); return {source:'national', id, name:p.name, types:d.types.map(x=>x.type.name), sprite:officialSprite(id)} }catch(e){return {source:'national', id, name:p.name, types:[], sprite:officialSprite(id)}} })); const alandar = ALANDAR_DEX.map(p=>({...p, source:'alandar'})); allPokemon=[...details, ...alandar]; ['search','typeFilter','modeFilter'].forEach(id=>document.getElementById(id).addEventListener('input',render)); render();}catch(e){document.getElementById('content').innerHTML='<div class="status">Could not load Pokédex data. Make sure this embed has internet access.</div>'}}
-load();
-</script>
+  <header class="topbar">
+    <div class="brand">Pokémon Alandar Database</div>
+    <nav>
+      <button data-view="national" class="nav-btn active">National Dex</button>
+      <button data-view="alandar" class="nav-btn">Alandar Dex</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Alandar Pokédex</h1>
+      <p>Simple RP database for Pokémon typing, evolutions, abilities, and rank based moves.</p>
+      <input id="search" type="search" placeholder="Search Pokémon..." />
+    </section>
+
+    <section id="dex-view" class="dex-grid"></section>
+    <section id="pokemon-view" class="pokemon-view hidden"></section>
+  </main>
+
+  <script src="js/app.js"></script>
 </body>
 </html>
